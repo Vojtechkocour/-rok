@@ -656,6 +656,57 @@
       100% { transform: scale(1); }
     }
 
+    /* ── Monthly hero ────────────────────────────────────────── */
+    .monthly-hero {
+      background: linear-gradient(135deg, rgba(108,99,255,.18), rgba(67,233,123,.12));
+      border: 1px solid rgba(108,99,255,.35);
+      border-radius: var(--radius);
+      padding: 32px 24px;
+      text-align: center;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .monthly-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(108,99,255,.12), transparent 70%);
+      pointer-events: none;
+    }
+    .monthly-hero-label {
+      font-size: .8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--text3);
+      margin-bottom: 12px;
+    }
+    .monthly-hero-amount {
+      font-size: 3.2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), var(--accent3));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.1;
+      letter-spacing: -.02em;
+    }
+    .monthly-hero-sub {
+      font-size: .85rem;
+      color: var(--text2);
+      margin-top: 10px;
+      line-height: 1.5;
+    }
+
+    /* Sensitivity table highlight */
+    td.sens-highlight {
+      background: rgba(108,99,255,.15);
+      color: var(--accent) !important;
+      font-weight: 700 !important;
+    }
+    th.sens-col-highlight { color: var(--accent) !important; }
+
     /* ── Hidden ──────────────────────────────────────────────── */
     .hidden { display: none !important; }
 
@@ -691,6 +742,7 @@
   <!-- Mode tabs -->
   <div class="mode-tabs">
     <button class="mode-tab active" data-mode="calc">📊 Kalkulačka</button>
+    <button class="mode-tab" data-mode="monthly">💰 Měsíční úložka</button>
     <button class="mode-tab" data-mode="goal">🎯 Cíl</button>
     <button class="mode-tab" data-mode="compare">⚖️ Porovnat</button>
   </div>
@@ -839,6 +891,29 @@
         </div>
       </div>
 
+      <!-- Monthly savings mode extra inputs -->
+      <div class="card animate hidden" id="monthly-panel" style="margin-top:16px">
+        <div class="card-title">Kolik chci mít</div>
+        <div class="form-group">
+          <div class="form-label"><span>Cílová částka</span></div>
+          <div class="input-wrap has-prefix">
+            <span class="input-prefix" id="currency-prefix-m">Kč</span>
+            <input type="number" id="inp-monthly-goal" value="3000000" min="0" step="100000" />
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="form-label"><span>Počáteční vklad (volitelně)</span></div>
+          <div class="input-wrap has-prefix">
+            <span class="input-prefix" id="currency-prefix-m2">Kč</span>
+            <input type="number" id="inp-monthly-principal" value="50000" min="0" step="10000" />
+          </div>
+        </div>
+        <div class="info-box" style="margin-top:4px">
+          <span class="icon">💡</span>
+          <span>Roční sazba a délka investice se berou z hlavních parametrů vlevo.</span>
+        </div>
+      </div>
+
       <!-- Goal mode extra inputs -->
       <div class="card animate hidden" id="goal-panel" style="margin-top:16px">
         <div class="card-title">Cílová částka</div>
@@ -973,6 +1048,68 @@
         </div>
       </div>
 
+      <!-- ── Monthly savings mode ── -->
+      <div id="results-monthly" class="hidden">
+
+        <!-- Hero answer -->
+        <div class="monthly-hero animate" id="monthly-hero-box">
+          <div class="monthly-hero-label">Musíte odkládat měsíčně</div>
+          <div class="monthly-hero-amount" id="monthly-answer">–</div>
+          <div class="monthly-hero-sub" id="monthly-sub"></div>
+        </div>
+
+        <!-- Key stats -->
+        <div class="stats-grid">
+          <div class="stat-card accent1 animate">
+            <div class="stat-label">Cílová částka</div>
+            <div class="stat-value" id="monthly-stat-goal">–</div>
+          </div>
+          <div class="stat-card accent2 animate">
+            <div class="stat-label">Celkem vložíte</div>
+            <div class="stat-value" id="monthly-stat-invested">–</div>
+          </div>
+          <div class="stat-card accent3 animate">
+            <div class="stat-label">Vydělají úroky</div>
+            <div class="stat-value" id="monthly-stat-interest">–</div>
+          </div>
+          <div class="stat-card accent4 animate">
+            <div class="stat-label">Páka úroků</div>
+            <div class="stat-value" id="monthly-stat-leverage">–</div>
+            <div class="stat-sub">každá vložená Kč vydělá X Kč navíc</div>
+          </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="chart-card animate">
+          <div class="chart-header">
+            <div class="chart-title">Cesta k cíli</div>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="monthly-chart"></canvas>
+          </div>
+        </div>
+
+        <!-- Sensitivity table -->
+        <div class="card animate">
+          <div class="card-title" style="margin-bottom:14px">Senzitivita — různé kombinace</div>
+          <div class="info-box">
+            <span class="icon">📊</span>
+            <span>Kolik měsíčně odkládat při různých sazbách a dobách investice (počáteční vklad stejný).</span>
+          </div>
+          <div class="table-container" style="max-height:280px">
+            <div class="table-wrap">
+              <table id="sensitivity-table">
+                <thead>
+                  <tr id="sensitivity-head"></tr>
+                </thead>
+                <tbody id="sensitivity-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
       <!-- ── Goal mode ── -->
       <div id="results-goal" class="hidden">
         <div class="goal-result animate" id="goal-result-box">
@@ -1049,7 +1186,7 @@
 <script>
 // ── State ──────────────────────────────────────────────────────
 const CURRENCY = { CZK: 'Kč', EUR: '€', USD: '$', GBP: '£' };
-let chartMain = null, chartGoal = null, chartCompare = null;
+let chartMain = null, chartGoal = null, chartCompare = null, chartMonthly = null;
 let chartType = 'area';
 let mode = 'calc';
 let inflationOn = false, taxOn = false;
@@ -1066,6 +1203,8 @@ const selContribFreq = $('sel-contrib-freq');
 const selCurrency  = $('sel-currency');
 const inpInflation = $('inp-inflation');
 const inpTax       = $('inp-tax');
+const inpMonthlyGoal      = $('inp-monthly-goal');
+const inpMonthlyPrincipal = $('inp-monthly-principal');
 const inpGoal      = $('inp-goal');
 const selGoalType  = $('sel-goal-type');
 const inpRateB     = $('inp-rate-b');
@@ -1228,6 +1367,166 @@ function updateCalc() {
       <td class="positive">+${fmt(yearGain, true)}</td>
     `;
     tbody.appendChild(tr);
+  });
+}
+
+// ── Compute required monthly payment ──────────────────────────
+function calcMonthlyPayment(target, principal, rate, years) {
+  const r = rate / 100;
+  const r12 = r / 12;
+  const months = years * 12;
+  const compFactor = r12 > 0 ? Math.pow(1 + r12, months) : 1;
+  const FV_principal = principal * compFactor;
+  const remaining = target - FV_principal;
+  if (remaining <= 0) return 0;
+  if (r12 === 0) return remaining / months;
+  return remaining / ((compFactor - 1) / r12);
+}
+
+// ── Update monthly savings mode ────────────────────────────────
+function updateMonthly() {
+  const { rate, years, freqN, tax } = getParams();
+  const target    = parseFloat(inpMonthlyGoal.value) || 0;
+  const principal = parseFloat(inpMonthlyPrincipal.value) || 0;
+
+  const monthly = calcMonthlyPayment(target, principal, rate, years);
+  const monthlyDisplay = Math.max(0, monthly);
+
+  // Simulate to get totals
+  const data = compute(principal, rate, years, freqN, monthlyDisplay, 12, tax);
+  const last  = data[data.length - 1];
+
+  // Hero
+  const heroEl = $('monthly-answer');
+  heroEl.classList.remove('number-change');
+  void heroEl.offsetWidth;
+  heroEl.textContent = fmt(monthlyDisplay) + ' / měs.';
+  heroEl.classList.add('number-change');
+
+  const totalContribMonthly = monthlyDisplay * 12 * years;
+  $('monthly-sub').textContent =
+    `Za ${years} let vložíte celkem ${fmt(principal + totalContribMonthly, true)} · úroky dodají ${fmt(Math.max(0, last.totalInterest), true)}`;
+
+  // Stats
+  $('monthly-stat-goal').textContent     = fmt(target);
+  $('monthly-stat-invested').textContent = fmt(last.totalInvested);
+  $('monthly-stat-interest').textContent = fmt(Math.max(0, last.totalInterest));
+  const leverage = last.totalInvested > 0
+    ? (last.totalInterest / last.totalInvested).toFixed(2)
+    : '0.00';
+  $('monthly-stat-leverage').textContent = leverage + '×';
+
+  // Chart
+  const labels   = data.map(d => 'Rok ' + d.year);
+  const balances = data.map(d => d.balance);
+  const invested = data.map(d => d.totalInvested);
+  updateMonthlyChart(labels, balances, invested, target);
+
+  // Sensitivity table
+  const rates = [2, 4, 6, rate, 10, 12, 15].filter((v, i, a) => a.indexOf(v) === i).sort((a,b) => a-b);
+  const durations = [5, 10, 15, years, 20, 25, 30].filter((v, i, a) => a.indexOf(v) === i).sort((a,b) => a-b);
+
+  const thead = $('sensitivity-head');
+  const tbody = $('sensitivity-body');
+  thead.innerHTML = '';
+  tbody.innerHTML = '';
+
+  const thCorner = document.createElement('th');
+  thCorner.textContent = 'Sazba \\ Roky';
+  thCorner.style.textAlign = 'left';
+  thead.appendChild(thCorner);
+  durations.forEach(d => {
+    const th = document.createElement('th');
+    th.textContent = d + ' let';
+    if (d === years) th.classList.add('sens-col-highlight');
+    thead.appendChild(th);
+  });
+
+  rates.forEach(r => {
+    const tr = document.createElement('tr');
+    const tdLabel = document.createElement('td');
+    tdLabel.textContent = r.toFixed(1) + ' %';
+    tdLabel.style.fontWeight = '600';
+    if (r === rate) tdLabel.style.color = 'var(--accent)';
+    tr.appendChild(tdLabel);
+
+    durations.forEach(d => {
+      const m = Math.max(0, calcMonthlyPayment(target, principal, r, d));
+      const td = document.createElement('td');
+      td.textContent = fmt(m, true);
+      if (r === rate && d === years) td.classList.add('sens-highlight');
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+}
+
+function updateMonthlyChart(labels, balances, invested, target) {
+  chartDefaults();
+  const ctx = $('monthly-chart').getContext('2d');
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+  const grad = ctx.createLinearGradient(0, 0, 0, 260);
+  grad.addColorStop(0, 'rgba(108,99,255,.45)');
+  grad.addColorStop(1, 'rgba(108,99,255,.01)');
+
+  const gradInv = ctx.createLinearGradient(0, 0, 0, 260);
+  gradInv.addColorStop(0, 'rgba(67,233,123,.3)');
+  gradInv.addColorStop(1, 'rgba(67,233,123,.01)');
+
+  if (chartMonthly) { chartMonthly.destroy(); chartMonthly = null; }
+  chartMonthly = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Hodnota portfolia',
+          data: balances,
+          borderColor: '#6c63ff',
+          backgroundColor: grad,
+          fill: true,
+          tension: 0.4,
+          borderWidth: 2.5,
+          pointRadius: 0,
+        },
+        {
+          label: 'Celkem vloženo',
+          data: invested,
+          borderColor: '#43e97b',
+          backgroundColor: gradInv,
+          fill: true,
+          tension: 0.4,
+          borderWidth: 2,
+          pointRadius: 0,
+        },
+        {
+          label: 'Cíl',
+          data: Array(labels.length).fill(target),
+          borderColor: '#ff6584',
+          backgroundColor: 'transparent',
+          borderDash: [8, 4],
+          borderWidth: 2,
+          pointRadius: 0,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'top', labels: { boxWidth: 12, padding: 16, font: { size: 11 } } },
+        tooltip: { callbacks: { label: ctx => ' ' + ctx.dataset.label + ': ' + fmt(ctx.parsed.y, true) } },
+      },
+      scales: {
+        y: {
+          ticks: { callback: v => fmt(v, true), maxTicksLimit: 6 },
+          grid: { color: isDark ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.05)' },
+        },
+        x: { grid: { display: false }, ticks: { maxTicksLimit: 10, maxRotation: 0 } },
+      },
+    },
   });
 }
 
@@ -1534,6 +1833,7 @@ function updateCompareChart(labels, dataA, dataB) {
 // ── Master update ──────────────────────────────────────────────
 function update() {
   if (mode === 'calc') updateCalc();
+  else if (mode === 'monthly') updateMonthly();
   else if (mode === 'goal') updateGoal();
   else if (mode === 'compare') { updateCalc(); updateCompare(); }
 }
@@ -1541,7 +1841,7 @@ function update() {
 // ── Currency prefixes ──────────────────────────────────────────
 function updateCurrencyPrefixes() {
   const sym = getCurrencySymbol();
-  ['currency-prefix','currency-prefix2','currency-prefix3','currency-prefix4'].forEach(id => {
+  ['currency-prefix','currency-prefix2','currency-prefix3','currency-prefix4','currency-prefix-m','currency-prefix-m2'].forEach(id => {
     const el = $(id);
     if (el) el.textContent = sym;
   });
@@ -1568,7 +1868,8 @@ function wire() {
   });
 
   // All other inputs
-  [inpPrincipal, inpContrib, inpInflation, inpTax, inpGoal, inpRateB, inpContribB].forEach(el => {
+  [inpPrincipal, inpContrib, inpInflation, inpTax, inpGoal, inpRateB, inpContribB,
+   inpMonthlyGoal, inpMonthlyPrincipal].forEach(el => {
     el.addEventListener('input', update);
   });
   [selFreq, selContribFreq, selGoalType].forEach(el => {
@@ -1586,9 +1887,11 @@ function wire() {
       document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
 
-      $('results-calc').classList.toggle('hidden', mode === 'goal');
+      $('results-calc').classList.toggle('hidden', mode === 'goal' || mode === 'monthly');
       $('results-goal').classList.toggle('hidden', mode !== 'goal');
+      $('results-monthly').classList.toggle('hidden', mode !== 'monthly');
       $('results-compare').classList.toggle('hidden', mode !== 'compare');
+      $('monthly-panel').classList.toggle('hidden', mode !== 'monthly');
       $('goal-panel').classList.toggle('hidden', mode !== 'goal');
       $('compare-panel').classList.toggle('hidden', mode !== 'compare');
 
@@ -1640,6 +1943,8 @@ function wire() {
     selContribFreq.value = '12';
     inpInflation.value = 3;
     inpTax.value = 15;
+    inpMonthlyGoal.value = 3000000;
+    inpMonthlyPrincipal.value = 50000;
     inflationOn = false; taxOn = false;
     $('toggle-inflation').classList.remove('on'); $('inflation-fields').style.display = 'none';
     $('toggle-tax').classList.remove('on'); $('tax-fields').style.display = 'none';
